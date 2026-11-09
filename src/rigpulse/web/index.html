@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080f1e" />
+  <title>RigPulse · Telemetry Reliability Lab</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="/"><span class="brand-mark">∿</span><span>RIG<span class="brand-accent">PULSE</span><small>RELIABILITY LAB</small></span></a>
+      <div class="side-section">WORKSPACE</div>
+      <div class="side-link active"><span>◫</span> Fleet overview</div>
+      <div class="side-link"><span>⌁</span> Anomaly insights</div>
+      <div class="side-link"><span>⋈</span> Signal explorer</div>
+      <div class="side-section">CURRENT RELEASE</div>
+      <div class="release"><strong>v0.1.0</strong><span>Local demonstration</span><p>Rule-based and rolling robust-z detection; streaming and ML models planned.</p></div>
+      <div class="side-foot">SYNTHETIC DATA · NOT SAFETY CERTIFIED</div>
+    </aside>
+    <main class="content">
+      <header class="topbar">
+        <div class="crumb">Telemetry operations <span>/</span> Overview</div>
+        <span id="connection" class="connection"><span class="connection-dot"></span> Connecting…</span>
+      </header>
+      <div class="page">
+        <div class="heading"><div><div class="eyebrow">INDUSTRIAL OBSERVABILITY</div><h1>Fleet health overview<span class="dot">.</span></h1><p>Understand equipment signals, anomalous measurements, and detection evidence in one place.</p></div><button class="refresh" id="refresh">↻ Refresh</button></div>
+        <div class="stats">
+          <article class="stat"><span>Monitored rigs</span><strong id="rigs">—</strong><small>Connected data sources</small><i>▦</i></article>
+          <article class="stat"><span>Telemetry readings</span><strong id="readings">—</strong><small>Historical data points</small><i>⌁</i></article>
+          <article class="stat"><span>Flagged readings</span><strong id="flagged">—</strong><small>Unique suspected anomalies</small><i>◈</i></article>
+          <article class="stat danger"><span>Critical alerts</span><strong id="critical">—</strong><small>Detector findings</small><i>!</i></article>
+        </div>
+        <div class="body-grid">
+          <section class="panel chart-panel">
+            <div class="panel-head"><div><h2>Signal explorer</h2><p>Recent measurements with anomaly markers</p></div><span class="chip">ROLLING SERIES</span></div>
+            <div class="filters"><label>Rig<select id="rig-select"><option>Loading…</option></select></label><label>Metric<select id="metric-select"><option value="temperature_c">Temperature · °C</option><option value="pressure_bar">Pressure · bar</option><option value="vibration_mm_s">Vibration · mm/s</option><option value="flow_m3_h">Flow · m³/h</option></select></label></div>
+            <div class="chart-wrap"><svg id="chart" viewBox="0 0 800 265" preserveAspectRatio="none" role="img" aria-label="Recent telemetry line chart"><text x="400" y="130" text-anchor="middle" fill="#8394ac">Loading data…</text></svg></div>
+            <div class="legend"><span><b class="legend-line"></b>Reading</span><span><b class="legend-alert"></b>Flagged anomaly</span></div>
+          </section>
+          <section class="panel status-panel"><div class="panel-head"><div><h2>Detection engine</h2><p>Transparent anomaly signals</p></div><span class="chip neutral">EXPLAINABLE</span></div>
+            <div class="engine-item"><span class="engine-icon">△</span><div><strong>Operating limits</strong><small>Illustrative rule thresholds by metric</small></div><span class="pill ok">ACTIVE</span></div>
+            <div class="engine-item"><span class="engine-icon">⌁</span><div><strong>Rolling robust Z</strong><small>Prior-only median and MAD baseline</small></div><span class="pill ok">ACTIVE</span></div>
+            <div class="engine-item planned"><span class="engine-icon">✧</span><div><strong>Multivariate anomaly ML</strong><small>Cross-sensor feature modelling</small></div><span class="pill">PLANNED</span></div>
+            <div class="engine-item planned"><span class="engine-icon">◉</span><div><strong>Streaming connectors</strong><small>Kafka / MQTT and backpressure</small></div><span class="pill">PLANNED</span></div>
+            <div class="notice">This lab uses reproducible synthetic telemetry. Alerts are informational only and must not control industrial equipment.</div>
+          </section>
+        </div>
+        <section class="panel alert-panel"><div class="panel-head"><div><h2>Latest anomaly findings</h2><p>Each alert includes the detector and why it fired</p></div><span class="chip">RECENT FIRST</span></div>
+          <div class="table-scroll"><table><thead><tr><th>Timestamp (UTC)</th><th>Rig</th><th>Metric</th><th>Value</th><th>Detector</th><th>Severity</th></tr></thead><tbody id="alerts"><tr><td colspan="6">Loading alerts…</td></tr></tbody></table></div>
+        </section>
+        <footer>RigPulse v0.1.0 · Python / FastAPI / SQLite · <a href="/docs">API documentation</a> · Educational engineering prototype</footer>
+      </div>
+    </main>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

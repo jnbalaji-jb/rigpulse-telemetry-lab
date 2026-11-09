@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rigpulse-telemetry-lab"
+version = "0.1.0"
+description = "An extensible industrial telemetry anomaly detection and reliability engineering lab"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "RigPulse contributors"}]
+keywords = ["observability", "time-series", "anomaly-detection", "reliability-engineering", "mlops"]
+dependencies = ["fastapi>=0.110,<1", "uvicorn>=0.29,<1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "ruff>=0.6,<1"]
+
+[project.scripts]
+rigpulse = "rigpulse.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rigpulse = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
