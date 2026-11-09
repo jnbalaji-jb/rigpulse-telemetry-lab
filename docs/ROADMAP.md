@@ -4,6 +4,8 @@ The following is a **development plan, not a claim that these features already e
 
 ## Milestone M1 — Multivariate anomaly learning
 
+**Progress:** Session 1 (time-aligned feature export) implemented in `src/rigpulse/features.py`, with tests and CLI documentation. Model training, temporal validation, comparisons, and API integration remain planned. The acceptance criteria below are not yet fully met.
+
 **Problem:** Current detectors treat each sensor separately; they cannot detect joint anomalies like pressure falling while vibration rises even if neither individual reading crosses its own threshold.
 
 **Implementation tasks:**

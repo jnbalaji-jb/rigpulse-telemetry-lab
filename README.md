@@ -33,6 +33,7 @@ Unlike a single notebook, RigPulse is an installable Python package with a CLI, 
 | REST API and documentation | ✅ Implemented | FastAPI and `/docs` |
 | Automated tests and GitHub CI | ✅ Implemented | pytest / Python 3.11 and 3.12 |
 | MQTT / Kafka ingestion | 🟡 Planned | Milestone M2 |
+| Time-aligned causal features | ✅ Implemented (M1 session 1) | `rigpulse features` / `docs/FEATURE_ENGINEERING.md` |
 | Multivariate anomaly ML | 🟡 Planned | Milestone M1 |
 | Incident management & explanations | 🟡 Planned | Milestone M3 |
 | RBAC, Postgres, telemetry / deployment | 🟡 Planned | Milestone M4 |
@@ -94,6 +95,14 @@ observed_at,rig_id,metric,value
 
 Metrics currently supported: `temperature_c`, `pressure_bar`, `vibration_mm_s`, `flow_m3_h`. Timestamps require a timezone, and are normalized to UTC. Exact duplicates (rig, metric, timestamp) are skipped. To overwrite an existing point, a future version will provide an explicit correction workflow rather than silently change history.
 
+### Export causal multivariate features (Issue #1, session 1)
+
+```powershell
+.\.venv\Scripts\rigpulse.exe features --db rigpulse.db --out reports/features.csv --bucket-minutes 60 --window 12
+```
+
+The export provides UTC-aligned per-rig sensor values, missingness indicators, previous-only rolling statistics, and cross-sensor ratios. This is the **feature-engineering stage** of M1, not an ML model. See [Feature Engineering](docs/FEATURE_ENGINEERING.md) for exact bucket semantics, causality assumptions, and remaining work.
+
 ## Explore the REST API
 
 | Endpoint | Description |
@@ -135,7 +144,7 @@ CI runs on Python 3.11 and 3.12. Tests check deterministic generation, input val
 
 ## What I am building next
 
-The most important next feature is **[M1: Multivariate Anomaly Detection](docs/ROADMAP.md#milestone-m1--multivariate-anomaly-learning)**. Today RigPulse flags each metric independently; I want to create causal, timestamp-aligned feature windows combining temperature, pressure, vibration, and flow, train and compare unsupervised detectors, track experiment artifacts, and evaluate robustness under drift. This is substantive, testable development work rather than another cosmetic UI update.
+The most important active milestone is **[M1: Multivariate Anomaly Detection](docs/ROADMAP.md#milestone-m1--multivariate-anomaly-learning)**. The first feature-engineering increment now exports causal, timestamp-aligned readings and past-only statistics across temperature, pressure, vibration, and flow. The **Isolation Forest training, temporal backtesting, evaluation, experiment registry, and integration into alerts and dashboard remain unimplemented**. These are the next substantive development tasks.
 
 Other upcoming work: asynchronous MQTT/Kafka ingestion and replay, incident grouping and human feedback, granular access control, PostgreSQL support, and OpenTelemetry instrumentation. See [Roadmap](docs/ROADMAP.md), [Engineering Backlog](docs/BACKLOG.md), [Project Proposal](docs/PROJECT_PROPOSAL.md), and [GitHub upload instructions](docs/GITHUB_SETUP.md).
 

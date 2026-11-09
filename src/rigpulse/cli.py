@@ -8,6 +8,7 @@ from pathlib import Path
 from rigpulse.detection import detect
 from rigpulse.drift import drift_report
 from rigpulse.evaluation import evaluate
+from rigpulse.features import export_features
 from rigpulse.ingest import ingest_csv
 from rigpulse.simulate import generate
 from rigpulse.storage import summary
@@ -48,6 +49,11 @@ def parser() -> argparse.ArgumentParser:
     a.add_argument("--db", default="rigpulse.db")
     a.add_argument("--truth", required=True)
     a.add_argument("--out", default=None)
+    a = sub.add_parser("features", help="export causal, multivariate sensor features to CSV")
+    a.add_argument("--db", default="rigpulse.db")
+    a.add_argument("--out", default="reports/features.csv")
+    a.add_argument("--bucket-minutes", type=int, default=60)
+    a.add_argument("--window", type=int, default=12)
     a = sub.add_parser("demo", help="generate, ingest, detect, evaluate in a single reproducible run")
     a.add_argument("--db", default="rigpulse.db")
     a.add_argument("--out", default="demo_data")
@@ -76,6 +82,8 @@ def main(argv: list[str] | None = None) -> int:
         emit(drift_report(args.db), args.out)
     elif command == "evaluate":
         emit(evaluate(args.db, args.truth), args.out)
+    elif command == "features":
+        emit(export_features(args.db, args.out, args.bucket_minutes, args.window))
     elif command == "demo":
         generated = generate(args.out, args.rigs, args.hours, args.seed)
         loaded = ingest_csv(generated["telemetry_path"], args.db)
