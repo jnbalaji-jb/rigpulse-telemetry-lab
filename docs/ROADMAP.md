@@ -1,23 +1,19 @@
-# Product roadmap — genuinely unfinished work
+# Product roadmap
 
-The following is a **development plan, not a claim that these features already exist**. Each milestone contains code, testing, and design work suitable for continued AI-assisted coding sessions and human engineering review.
+Completed milestones are marked explicitly; subsequent milestones represent planned engineering work.
 
-## Milestone M1 — Multivariate anomaly learning
+## Milestone M1 — Multivariate anomaly learning (✅ Completed in v0.2.0)
 
-**Progress:** Session 1 (time-aligned feature export) implemented in `src/rigpulse/features.py`, with tests and CLI documentation. Model training, temporal validation, comparisons, and API integration remain planned. The acceptance criteria below are not yet fully met.
+**Implemented deliverables:**
+1. `src/rigpulse/features.py`: Timestamp-aligned UTC buckets across all four metrics per rig with explicit missing-data indicators, lag features, and leak-free boundaries.
+2. `src/rigpulse/ml.py`: Unified `Detector` protocol and `IsolationForestDetector` with training-only median imputation and standardization, JSON model artifact serialization, and top-feature deviation explanations.
+3. `src/rigpulse/backtest.py`: Chronological train/validation/test splits with an embargo window (`temporal_split_with_embargo`), Leave-One-Rig-Out (`LORO`) out-of-distribution generalization tests, and ablation comparisons across `operating_limit`, `rolling_robust_z`, `isolation_forest`, and `ensemble_rz_or_if`.
+4. `src/rigpulse/cli.py` & `src/rigpulse/detection.py`: Added `rigpulse train`, `rigpulse compare`, and `rigpulse detect --model`, reporting F1, PR-AUC, false alerts per rig-day, mean detection delay, and inference latency.
+5. `tests/test_ml_m1.py`: Automated tests covering artifact round-trip, multivariate scoring, temporal embargo disjointness, and CLI experiment execution.
 
-**Problem:** Current detectors treat each sensor separately; they cannot detect joint anomalies like pressure falling while vibration rises even if neither individual reading crosses its own threshold.
+---
 
-**Implementation tasks:**
-1. Timestamp-align all four metrics per rig; build sliding windows with explicit missing-data masks, sensor-lag features, and leak-free train/inference boundaries.
-2. Add `Detector` interface and isolation-forest baseline; include an optional autoencoder benchmark later, with all training performed within the experiment, no bundled trained weights.
-3. Add temporal train/validation/test splits; for generalization checks, withhold entire rigs and incident windows.
-4. Add reproducible experiment configurations, a JSON metrics registry, and a simple ablation runner comparing rules, robust Z, IsolationForest, and ensembles.
-5. Report precision/recall/F1, PR-AUC, false alerts per rig-day, inference latency, and detection delay, with regression tests.
-
-**Acceptance criteria:** new `rigpulse train` / `rigpulse compare` commands; documented protocol; artifacts reproducible with a fixed seed; backtest doesn't expose test labels to the detector; CI covers schema, train/test isolation, and API output contract.
-
-## Milestone M2 — Real-time ingest and resilience
+## Milestone M2 — Real-time ingest and resilience (🟡 Next)
 
 **Problem:** Batch-only import and full recompute will not work for sustained telemetry feeds.
 
@@ -30,9 +26,9 @@ The following is a **development plan, not a claim that these features already e
 
 **Acceptance criteria:** a local docker-compose integration test simulates restarts, duplicate messages, and late-arrival events with stable results and bounded memory.
 
-## Milestone M3 — Alert correlation and incident workflows
+## Milestone M3 — Alert correlation and incident workflows (🟡 Planned)
 
-**Problem:** Two detectors can flag the same event and a single equipment incident can span multiple sensors.
+**Problem:** Multiple detectors can flag the same event and a single equipment incident can span multiple sensors.
 
 **Implementation tasks:**
 1. Add incident grouping across detectors and configurable suppression/deduplication windows.
@@ -43,7 +39,7 @@ The following is a **development plan, not a claim that these features already e
 
 **Acceptance criteria:** one physical event can result in one tracked incident, with reproducible grouping and an auditable state transition history.
 
-## Milestone M4 — Production-grade infrastructure
+## Milestone M4 — Production-grade infrastructure (🟡 Planned)
 
 **Problem:** SQLite and unauthenticated HTTP are suitable only for an isolated development demo.
 
@@ -55,14 +51,3 @@ The following is a **development plan, not a claim that these features already e
 5. Publish deployment profiles and explicit operational safety constraints.
 
 **Acceptance criteria:** multi-user access-control integration tests, reproducible deployment, bounded request latencies, and documented failure recovery procedures.
-
-## Suggested first four working sessions
-
-| Session | Deliverable | Definition of done |
-| --- | --- | --- |
-| 1 | Alignment layer | Per-rig time-window feature matrix + missing-sensor tests |
-| 2 | Isolation Forest detector | New detector interface, testable fit/predict path, no leakage |
-| 3 | Time-aware backtesting | Frozen temporal test window + PR metrics and false-alert rate |
-| 4 | Engineering comparison report | Baseline vs ML experiments, honest failure cases, README updates |
-
-The roadmap is intentionally bounded: do **not** claim completed features in a project application until the code, tests, and docs exist.

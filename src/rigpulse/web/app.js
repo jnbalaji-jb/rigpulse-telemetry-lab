@@ -42,12 +42,20 @@ async function loadSeries() {
 async function refresh() {
   try {
     const [summary, rigs, alerts]=await Promise.all([
-      endpoint('/api/v1/summary'), endpoint('/api/v1/rigs'), endpoint('/api/v1/alerts?limit=12')
+      endpoint('/api/v1/summary'), endpoint('/api/v1/rigs'), endpoint('/api/v1/alerts?limit=25')
     ]);
     $('#rigs').textContent=compact(summary.rigs);
     $('#readings').textContent=compact(summary.readings);
     $('#flagged').textContent=compact(summary.flagged_readings);
     $('#critical').textContent=compact(summary.critical_alerts);
+    const hasMlAlerts = alerts.items.some(a => a.detector === 'isolation_forest');
+    const mlPill = $('#ml-engine-pill');
+    const mlItem = $('#ml-engine-item');
+    if (mlPill && mlItem) {
+      mlPill.textContent = hasMlAlerts ? 'ACTIVE' : 'READY';
+      mlPill.classList.toggle('ok', hasMlAlerts);
+      mlItem.classList.toggle('planned', !hasMlAlerts);
+    }
     const select=$('#rig-select'), selected=select.value;
     select.innerHTML=rigs.rigs.map(r=>`<option value="${escapeHTML(r)}">${escapeHTML(r)}</option>`).join('');
     if(rigs.rigs.includes(selected)) select.value=selected;

@@ -1,6 +1,6 @@
-# Feature engineering — first implementation for Issue #1
+# Feature engineering — causal multivariate windows (Issue #1 / M1)
 
-**Status:** Implemented as a first building block. This is **not** the promised Isolation Forest model; that remains future development.
+**Status:** Implemented and integrated with `rigpulse train` and `rigpulse compare` in Milestone M1 (`v0.2.0`).
 
 ## Command
 
@@ -25,13 +25,6 @@ The command creates a CSV with one row per rig and UTC time bucket. There is no 
 - For each metric (temperature, pressure, vibration, flow): `metric`, `metric_missing`, `metric_history_count`, `metric_past_median`, `metric_past_std`, `metric_delta_1`
 - `pressure_flow_ratio`, `vibration_flow_ratio`, `vibration_flow_ratio_delta_1`
 
-Missing numerical values are empty CSV cells. `_missing` is 1 if the metric is absent in the completed bucket, otherwise 0. `_history_count` is the number of nonmissing readings within the preceding `window` buckets; `_past_std` is the population standard deviation, left empty when fewer than 2 samples are present. No scaling is performed: downstream ML must fit normalizers on training history only.
-
-## What remains in Issue #1
-
-1. Add an explicit training-only time split and fit an Isolation Forest on the feature matrix, including a strategy for missing values.
-2. Compare an ML detector to the existing operating-limit / robust-z baselines, reporting alert rate and errors as well as F1.
-3. Add independent holdout scenarios and validation across rigs, avoiding synthetic-label leakage.
-4. Add stable ML artifact serialization, model versioning, and integration with the dashboard and alert APIs.
+Missing numerical values are empty CSV cells. `_missing` is 1 if the metric is absent in the completed bucket, otherwise 0. `_history_count` is the number of nonmissing readings within the preceding `window` buckets; `_past_std` is the population standard deviation, left empty when fewer than 2 samples are present. Downstream ML (`src/rigpulse/ml.py`) fits median imputers and standard scalers strictly on training slices only.
 
 This prototype uses synthetic data only. Do not infer suitability for equipment safety systems from the demo evaluation.
