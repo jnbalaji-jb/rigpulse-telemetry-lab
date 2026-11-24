@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rigpulse-telemetry-lab"
-version = "0.2.0"
+version = "0.3.0"
 description = "An extensible industrial telemetry anomaly detection and reliability engineering lab"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "RigPulse contributors"}]
-keywords = ["observability", "time-series", "anomaly-detection", "reliability-engineering", "mlops"]
+keywords = ["observability", "time-series", "anomaly-detection", "reliability-engineering", "mlops", "streaming"]
 dependencies = [
     "fastapi>=0.110,<1",
     "uvicorn>=0.29,<1",

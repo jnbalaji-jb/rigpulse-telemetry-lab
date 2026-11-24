@@ -1,22 +1,22 @@
 # RigPulse — Industrial Telemetry Reliability Lab
 
-**A real, extensible Python software engineering project for observing, testing, and improving industrial time-series reliability.**
+**An extensible Python software engineering project for observing, testing, and improving industrial time-series reliability.**
 
 [![Python CI](https://github.com/jnbalaji-jb/rigpulse-telemetry-lab/actions/workflows/tests.yml/badge.svg)](https://github.com/jnbalaji-jb/rigpulse-telemetry-lab/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688)
-![Release](https://img.shields.io/badge/status-v0.2.0%20M1%20complete-brightgreen)
+![Release](https://img.shields.io/badge/status-v0.3.0%20M2%20complete-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-> **Project status: v0.2.0 (Milestone M1 complete).** A runnable foundation with univariate baselines and multivariate Isolation Forest anomaly detection, not a deployed production platform. Uses synthetic data and illustrative operating limits only. It is **not an industrial safety or control system**. Streaming ingestion, incident response, and production-grade security are planned future work.
+> **Project status: v0.3.0 (Milestones M1 & M2 complete).** A runnable local reliability engineering lab with univariate baselines, multivariate Isolation Forest anomaly detection, and event-time MQTT/Kafka streaming with checkpoint recovery. Uses synthetic data and illustrative operating limits only. It is **not an industrial safety or control system**. Incident correlation and production-grade multi-tenant security are planned future work.
 
 ![RigPulse browser dashboard preview on synthetic telemetry](docs/assets/dashboard-preview.png)
 
 ## The problem
 
-Oilfield and other industrial equipment emits temperature, pressure, vibration, and flow readings. Anomalies can be subtle, context-dependent, and difficult to troubleshoot. This project explores a modular monitoring platform with **interpretable detectors, leak-free multivariate ML, reproducible experiments, durable ingestion, and a clear extension path toward streaming monitoring**.
+Oilfield and other industrial equipment emits temperature, pressure, vibration, and flow readings. Anomalies can be subtle, context-dependent, and difficult to troubleshoot. This project explores a modular monitoring platform with **interpretable detectors, leak-free multivariate ML, event-time streaming ingestion, reproducible experiments, and durable persistence**.
 
-Unlike a single notebook, RigPulse is an installable Python package with a CLI, REST API, SQLite persistence, a browser UI, automated tests, CI, and a deliberately maintained engineering backlog.
+Unlike a single notebook, RigPulse is an installable Python package with a CLI, REST API, SQLite persistence, a browser UI, automated tests, CI, and a structured engineering backlog.
 
 ## What works today
 
@@ -24,17 +24,17 @@ Unlike a single notebook, RigPulse is an installable Python package with a CLI, 
 | --- | --- | --- |
 | Reproducible time-series simulation | ✅ Implemented | Seeded generator, separate synthetic event labels |
 | Data-quality validation | ✅ Implemented | ISO 8601 UTC conversion, finite values, sensor schema |
-| Idempotent CSV ingestion | ✅ Implemented | SQLite uniqueness constraints and transactions |
+| Idempotent CSV & stream ingestion | ✅ Implemented | SQLite uniqueness constraints, event IDs, and transactions |
 | Explainable operating-limit alerts | ✅ Implemented | Configured example limits per metric |
 | Statistical anomaly detection | ✅ Implemented | Rolling median + MAD, past observations only |
-| Time-aligned causal features | ✅ Implemented | `rigpulse features` / `docs/FEATURE_ENGINEERING.md` |
+| Time-aligned causal features (M1) | ✅ Implemented | `rigpulse features` / `docs/FEATURE_ENGINEERING.md` |
 | Multivariate anomaly ML (M1) | ✅ Implemented | Leak-free Isolation Forest, temporal & LORO backtesting (`rigpulse train` / `rigpulse compare`) |
+| Event-time streaming & checkpoints (M2) | ✅ Implemented | Typed events, bounded queues, MQTT/Kafka adapters, watermarks, crash recovery (`rigpulse stream-demo`) |
 | Distribution drift report | ✅ Implemented | Quantile-bin PSI early vs late comparison |
 | Offline quantitative evaluation | ✅ Implemented | Precision, recall, F1, PR-AUC, false alerts/rig-day on synthetic events |
 | Interactive telemetry dashboard | ✅ Implemented | Responsive vanilla JS + inline SVG |
 | REST API and documentation | ✅ Implemented | FastAPI and `/docs` |
 | Automated tests and GitHub CI | ✅ Implemented | pytest / Python 3.11 and 3.12 |
-| MQTT / Kafka ingestion | 🟡 Planned | Milestone M2 |
 | Incident management & explanations | 🟡 Planned | Milestone M3 |
 | RBAC, Postgres, telemetry / deployment | 🟡 Planned | Milestone M4 |
 
@@ -65,6 +65,7 @@ Install and run a complete local demo (generates data, ingests, trains Isolation
 ```bash
 python -m pip install -e ".[dev]"
 rigpulse demo --db rigpulse.db --out demo_data --rigs 4 --hours 240 --seed 42
+rigpulse stream-demo --db rigpulse.db --rigs 4 --events 240 --seed 42 --out reports/m2_stream_benchmark.json
 rigpulse serve --db rigpulse.db
 ```
 
@@ -82,9 +83,10 @@ rigpulse summary --db rigpulse.db --out reports/summary.json
 rigpulse drift --db rigpulse.db --out reports/drift.json
 rigpulse evaluate --db rigpulse.db --truth demo_data/synthetic_ground_truth.csv --out reports/evaluation.json
 rigpulse compare --db rigpulse.db --truth demo_data/synthetic_ground_truth.csv --out reports/m1_comparison.json
+rigpulse stream-demo --db rigpulse.db --rigs 4 --events 240 --seed 42 --out reports/m2_stream_benchmark.json
 ```
 
-The generator outputs `telemetry.csv` and a **separate** `synthetic_ground_truth.csv`. **Ingestion, feature engineering, model training, and anomaly detection never use the ground-truth label.** It is used only by the `evaluate` and `compare` commands.
+The generator outputs `telemetry.csv` and a **separate** `synthetic_ground_truth.csv`. **Ingestion, feature engineering, model training, streaming scoring, and anomaly detection never use the ground-truth label.** It is used only by the `evaluate` and `compare` commands.
 
 ### Ingestion CSV schema
 
@@ -102,6 +104,7 @@ Metrics currently supported: `temperature_c`, `pressure_bar`, `vibration_mm_s`, 
 | --- | --- |
 | `GET /health` | Process health |
 | `GET /api/v1/summary` | Counts and alert totals |
+| `GET /api/v1/stream/status` | Streaming event counts, late arrivals, and detector checkpoints |
 | `GET /api/v1/rigs` | Available rigs and metrics |
 | `GET /api/v1/series?rig_id=RIG-001&metric=temperature_c` | Telemetry and alert markers |
 | `GET /api/v1/alerts?limit=25` | Recent explainable alerts (rules, robust Z, and Isolation Forest) |
@@ -111,8 +114,8 @@ Metrics currently supported: `temperature_c`, `pressure_bar`, `vibration_mm_s`, 
 
 ```mermaid
 flowchart LR
-    S[Seeded telemetry simulator / CSV] --> V[Input validation]
-    V --> DB[(SQLite)]
+    S[Seeded simulator / CSV / MQTT / Kafka] --> V[Validation & bounded queue]
+    V --> DB[(SQLite + checkpoints)]
     DB --> F[Causal bucketed features]
     F --> ML[Isolation Forest detector]
     DB --> D[Operating rules + rolling robust Z]
@@ -123,11 +126,10 @@ flowchart LR
     DB --> API[FastAPI read API]
     A --> API
     API --> UI[Browser dashboard]
-    FUT1[Future: MQTT / Kafka] -.-> V
     FUT3[Future: incident workflows] -.-> API
 ```
 
-`src/rigpulse/` owns application code; `tests/` covers the data pipeline, ML isolation, and HTTP contract; `docs/` records design decisions and the next development work. See [Architecture](docs/ARCHITECTURE.md).
+`src/rigpulse/` owns application code; `tests/` covers the data pipeline, ML isolation, streaming resilience, and HTTP contract; `docs/` records design decisions and the next development work. See [Architecture](docs/ARCHITECTURE.md).
 
 ## Tests
 
@@ -135,19 +137,19 @@ flowchart LR
 python -m pytest -q
 ```
 
-CI runs on Python 3.11 and 3.12. Tests check deterministic generation, input validation, idempotent re-ingestion and detection, causal feature alignment, Isolation Forest training/inference, temporal embargo splits, leave-one-rig-out backtesting, drift calculations, API validation, and the CLI demo.
+CI runs on Python 3.11 and 3.12. Tests check deterministic generation, input validation, idempotent re-ingestion and detection, causal feature alignment, Isolation Forest training/inference, temporal embargo splits, leave-one-rig-out backtesting, bounded queues, MQTT/Kafka adapters, event-time watermarks, crash-recovery checkpoints, drift calculations, API validation, and CLI demos.
 
 ## What I am building next
 
-With **Milestone M1 (Multivariate Anomaly Learning)** completed, the next active milestone is **[M2: Real-Time Ingest and Resilience](docs/ROADMAP.md#milestone-m2--real-time-ingest-and-resilience)**: asynchronous MQTT/Kafka ingestion, event-time windows with out-of-order handling, and incremental detector state checkpoints.
+With **Milestone M1 (Multivariate Anomaly Learning)** and **Milestone M2 (Real-Time Ingest and Resilience)** completed, the next active milestone is **[M3: Alert Correlation and Incident Workflows](docs/ROADMAP.md#milestone-m3--alert-correlation-and-incident-workflows)**: grouping multi-detector alerts into tracked incidents, suppression/deduplication windows, analyst feedback states, and hypothesis-labeled context explanations.
 
-Other upcoming work: incident grouping and human feedback (M3), granular access control, PostgreSQL support, and OpenTelemetry instrumentation (M4). See [Roadmap](docs/ROADMAP.md), [Engineering Backlog](docs/BACKLOG.md), and [Project Proposal](docs/PROJECT_PROPOSAL.md).
+Other upcoming work: granular access control, PostgreSQL support, and OpenTelemetry instrumentation (M4). See [Roadmap](docs/ROADMAP.md), [Engineering Backlog](docs/BACKLOG.md), and [Project Overview](docs/PROJECT_PROPOSAL.md).
 
 ## Engineering principles and limitations
 
 - **Correctness:** detectors and feature transformers only score against historical observations, avoiding future-data leakage; scalers and imputers fit strictly on training slices.
-- **Reproducibility:** synthetic scenarios and Isolation Forest training use explicit seeds, and evaluation uses stored labels.
-- **Traceability:** every finding stores a source measurement ID, detector, severity, score, and explanation.
+- **Reproducibility:** synthetic scenarios, Isolation Forest training, and MQTT stream simulations use explicit seeds, and evaluation uses stored labels.
+- **Traceability:** every finding stores a source measurement ID, detector, severity, score, and explanation; streaming events store idempotency keys and checkpoint cursors.
 - **Boundaries:** the current API is **local development only**, without authentication. Do not expose it on the public internet.
 - **Safety:** example thresholds and ML scores are not equipment-specific safety limits; synthetic results do not validate deployment on physical rigs.
 

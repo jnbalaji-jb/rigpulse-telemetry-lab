@@ -5,3 +5,10 @@ services:
       - "127.0.0.1:8000:8000"
     volumes:
       - ./data:/app/data
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    profiles: ["broker"]
+    ports:
+      - "127.0.0.1:1883:1883"
+    command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]

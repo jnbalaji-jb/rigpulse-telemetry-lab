@@ -1,37 +1,29 @@
-# GitHub project submission briefing (editable, honest draft)
+# RigPulse — Project Overview & Engineering Summary
 
 **Project name:** RigPulse — Industrial Telemetry Reliability Lab
 
-**Repository URL (after you publish it):** https://github.com/jnbalaji-jb/rigpulse-telemetry-lab
+**Repository URL:** https://github.com/jnbalaji-jb/rigpulse-telemetry-lab
 
-## Short project summary
+## Executive Summary
 
-RigPulse is a local-first Python platform for exploring industrial equipment telemetry reliability. It ingests validated time-series data, stores it in SQLite, computes interpretable anomaly alerts, evaluates detectors against isolated synthetic event labels, and exposes insights through FastAPI and an interactive web dashboard. The current project is a working **v0.1 prototype** using reproducible synthetic data—not a production monitoring or industrial safety system.
+RigPulse is a local-first Python platform for industrial equipment telemetry reliability engineering. It ingests and validates multi-sensor time-series data (`temperature_c`, `pressure_bar`, `vibration_mm_s`, `flow_m3_h`), stores readings and checkpoints in SQLite, runs interpretable rule-based, statistical, and multivariate ML anomaly detectors, supports event-time streaming ingestion with crash recovery, evaluates detectors against isolated synthetic event labels, and exposes insights through FastAPI and an interactive web dashboard.
 
-## Why this matters to me (personalize before using)
+## Engineering Goals
 
-I am interested in reliability engineering and applying ML to operational telemetry. I want to build a system where software correctness, transparent anomaly explanations, data-quality controls, and real-world engineering trade-offs are as important as predictive performance. This repository is my environment for progressively implementing and evaluating those capabilities.
+Industrial telemetry monitoring requires balancing predictive detection with software correctness, explainability, and operational resilience. RigPulse is designed around:
 
-## Current state (accurate as of generated starter)
+- **Zero look-ahead leakage:** All rolling statistics, causal bucketed features, imputers, and standard scalers fit strictly on historical or designated training windows.
+- **Deterministic reproducibility:** Seeded synthetic scenarios, deterministic feature alignment, and versioned JSON model artifacts ensure repeatable experiments.
+- **Stream resilience:** Typed event schemas with idempotency keys, bounded queues with backpressure controls, event-time watermark tracking, late-arrival handling, and SQLite state checkpoints enable reliable recovery across restarts.
+- **Explainable findings:** Every alert records the triggering detector, severity, numeric anomaly score, and human-readable explanation.
 
-The initial project includes a Python package, an installable CLI, a synthetic data generator, strict CSV ingestion, idempotent SQLite storage, an explainable rules + robust-z detector, a basic PSI drift report, offline evaluation, FastAPI endpoints, a dashboard, pytest coverage, and CI configuration.
+## Current Architecture & Implemented Capabilities (v0.3.0)
 
-## Work I plan to continue next
+- **Core Pipeline (`v0.1.0`):** Seeded telemetry generator (`simulate.py`), strict UTC ISO-8601 validation (`models.py`, `ingest.py`), idempotent SQLite storage (`storage.py`), operating-limit and rolling robust-Z detectors (`detection.py`), PSI drift reporting (`drift.py`), offline evaluation (`evaluation.py`), FastAPI read API (`api.py`), and dependency-free SVG dashboard (`web/`).
+- **Milestone M1 — Multivariate Anomaly Learning (`v0.2.0`):** Causal UTC-bucketed multivariate feature extraction (`features.py`), unified `Detector` protocol and leak-free `IsolationForestDetector` (`ml.py`), and embargoed temporal split plus Leave-One-Rig-Out (`LORO`) backtesting (`backtest.py`).
+- **Milestone M2 — Real-Time Ingest & Resilience (`v0.3.0`):** Typed `TelemetryEvent` schema, `BoundedEventQueue` backpressure policies, `MockMQTTConnector` and `KafkaConsumerAdapter`, event-time watermark and late-arrival tracking, deterministic log replay, and `IncrementalStreamDetector` with SQLite checkpoint recovery (`streaming.py`).
 
-My immediate priority is a **multivariate, temporally valid anomaly-detection pipeline**. I plan to align sensor signals by event time, design window features, compare rule-based baselines with Isolation Forest, introduce reproducible backtesting across time and unseen rigs, and measure false alarms per rig-day. After that, I want to implement streaming ingestion and incident correlation, followed by production-focused security and observability work.
+## Roadmap Ahead
 
-## Why AI-assisted coding is useful to this project
-
-I expect to use an AI coding assistant for bounded implementation tasks such as feature engineering, test generation, refactoring, and API design. I'll assess each proposal for test correctness, future-data leakage, reliability under noisy/late sensor events, clarity, and maintainability. I will run the code and make the final engineering decisions myself.
-
-## Important honesty checklist before an application
-
-- [ ] I have reviewed and can explain the current code and tests.
-- [ ] I have run the demo successfully on my own machine.
-- [ ] I have made at least one genuine engineering improvement and can describe it.
-- [ ] I created a GitHub issue for my first planned milestone.
-- [ ] I have not claimed that planned work is implemented.
-- [ ] I can confirm that I have rights to all code and data in the repository.
-- [ ] I will disclose AI assistance accurately if the program asks how the code was developed.
-
-> **Do not submit this draft as a claim that you personally implemented all generated starter code.** Adapt it to your actual involvement, review the repository, and do real work on the next milestone. Project acceptance is up to the program's reviewers.
+- **Milestone M3 — Alert Correlation & Incident Workflows:** Group multi-sensor and multi-detector alerts into tracked incidents with lifecycle states (`open`, `acknowledged`, `investigating`, `resolved`), deduplication windows, and hypothesis-labeled context explanations.
+- **Milestone M4 — Production Infrastructure:** PostgreSQL repository adapter, authentication and per-rig RBAC, OpenTelemetry tracing/metrics, and multi-service container deployment profiles.

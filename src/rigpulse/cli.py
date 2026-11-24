@@ -14,6 +14,7 @@ from rigpulse.ingest import ingest_csv
 from rigpulse.ml import ModelConfig, train_model
 from rigpulse.simulate import generate
 from rigpulse.storage import summary
+from rigpulse.streaming import run_stream_benchmark
 
 
 def emit(data: dict, output: str | None = None) -> None:
@@ -21,7 +22,8 @@ def emit(data: dict, output: str | None = None) -> None:
     if output:
         path = Path(output)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(result + "\n", encoding="utf-8")
+        path.write_text(result + "
+", encoding="utf-8")
     print(result)
 
 
@@ -73,6 +75,15 @@ def parser() -> argparse.ArgumentParser:
     a.add_argument("--window", type=int, default=12)
     a.add_argument("--contamination", type=float, default=0.04)
     a.add_argument("--seed", type=int, default=42)
+    a = sub.add_parser("stream-demo", help="run MQTT stream simulation with duplicates, late arrivals, and checkpoint recovery")
+    a.add_argument("--db", default="rigpulse.db")
+    a.add_argument("--rigs", type=int, default=4)
+    a.add_argument("--events", type=int, default=240)
+    a.add_argument("--seed", type=int, default=42)
+    a.add_argument("--duplicate-rate", type=float, default=0.1)
+    a.add_argument("--late-rate", type=float, default=0.1)
+    a.add_argument("--checkpoint-every", type=int, default=50)
+    a.add_argument("--out", default=None)
     a = sub.add_parser("demo", help="generate, ingest, train, detect, evaluate in a single run")
     a.add_argument("--db", default="rigpulse.db")
     a.add_argument("--out", default="demo_data")
@@ -119,6 +130,19 @@ def main(argv: list[str] | None = None) -> int:
             seed=args.seed,
         )
         emit(run_experiment_comparison(args.db, args.truth, args.out, cfg))
+    elif command == "stream-demo":
+        emit(
+            run_stream_benchmark(
+                db=args.db,
+                rigs=args.rigs,
+                events=args.events,
+                seed=args.seed,
+                duplicate_rate=args.duplicate_rate,
+                late_rate=args.late_rate,
+                checkpoint_every=args.checkpoint_every,
+                out_path=args.out,
+            )
+        )
     elif command == "demo":
         generated = generate(args.out, args.rigs, args.hours, args.seed)
         loaded = ingest_csv(generated["telemetry_path"], args.db)

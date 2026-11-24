@@ -41,8 +41,11 @@ async function loadSeries() {
 }
 async function refresh() {
   try {
-    const [summary, rigs, alerts]=await Promise.all([
-      endpoint('/api/v1/summary'), endpoint('/api/v1/rigs'), endpoint('/api/v1/alerts?limit=25')
+    const [summary, rigs, alerts, streamStatus]=await Promise.all([
+      endpoint('/api/v1/summary'),
+      endpoint('/api/v1/rigs'),
+      endpoint('/api/v1/alerts?limit=25'),
+      endpoint('/api/v1/stream/status')
     ]);
     $('#rigs').textContent=compact(summary.rigs);
     $('#readings').textContent=compact(summary.readings);
@@ -55,6 +58,14 @@ async function refresh() {
       mlPill.textContent = hasMlAlerts ? 'ACTIVE' : 'READY';
       mlPill.classList.toggle('ok', hasMlAlerts);
       mlItem.classList.toggle('planned', !hasMlAlerts);
+    }
+    const hasStreamEvents = (streamStatus.stream_events_total ?? 0) > 0;
+    const streamPill = $('#stream-engine-pill');
+    const streamItem = $('#stream-engine-item');
+    if (streamPill && streamItem) {
+      streamPill.textContent = hasStreamEvents ? 'ACTIVE' : 'READY';
+      streamPill.classList.toggle('ok', hasStreamEvents);
+      streamItem.classList.toggle('planned', !hasStreamEvents);
     }
     const select=$('#rig-select'), selected=select.value;
     select.innerHTML=rigs.rigs.map(r=>`<option value="${escapeHTML(r)}">${escapeHTML(r)}</option>`).join('');

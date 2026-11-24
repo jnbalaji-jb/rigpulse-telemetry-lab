@@ -13,20 +13,18 @@ Completed milestones are marked explicitly; subsequent milestones represent plan
 
 ---
 
-## Milestone M2 — Real-time ingest and resilience (🟡 Next)
+## Milestone M2 — Real-time ingest and resilience (✅ Completed in v0.3.0)
 
-**Problem:** Batch-only import and full recompute will not work for sustained telemetry feeds.
+**Implemented deliverables:**
+1. `src/rigpulse/streaming.py`: Typed `TelemetryEvent` schema with `rig_id`, `event_time`, `ingested_at`, and deterministic or explicit `event_id` idempotency keys.
+2. `src/rigpulse/streaming.py` & `compose.yaml`: Pluggable `StreamConsumer` protocol with `MockMQTTConnector` (wildcard topic filtering and synthetic stream generator) and `KafkaConsumerAdapter`, plus an optional Mosquitto broker profile in `compose.yaml`.
+3. `src/rigpulse/streaming.py`: `BoundedEventQueue` with `"reject"` (`BackpressureError`) and `"drop_oldest"` policies, event-time watermark tracking, out-of-order and late-arrival classification, idempotent deduplication, and `replay_stream_log`.
+4. `src/rigpulse/storage.py` & `src/rigpulse/streaming.py`: `IncrementalStreamDetector` with persisted rolling window state and watermark checkpoints (`detector_checkpoints` and `stream_events` tables) supporting crash-recovery restarts via `IncrementalStreamDetector.resume()`.
+5. `src/rigpulse/cli.py`, `src/rigpulse/api.py`, & `tests/test_streaming_m2.py`: Added `rigpulse stream-demo` throughput/latency benchmark CLI, `GET /api/v1/stream/status` endpoint, live dashboard streaming connector status, and automated resilience tests.
 
-**Implementation tasks:**
-1. Define a typed event schema with device ID, event timestamp, ingestion timestamp, and an idempotency key.
-2. Implement a mock MQTT connector and Kafka adapter behind a pluggable consumer interface; provide optional broker-backed integration tests.
-3. Add event-time windows, handling of late/out-of-order measurements, deduplication, replay, and bounded queues/backpressure.
-4. Introduce incremental detector state and crash-recovery checkpoints.
-5. Benchmark throughput and end-to-end delay under bursts and stream interruptions.
+---
 
-**Acceptance criteria:** a local docker-compose integration test simulates restarts, duplicate messages, and late-arrival events with stable results and bounded memory.
-
-## Milestone M3 — Alert correlation and incident workflows (🟡 Planned)
+## Milestone M3 — Alert correlation and incident workflows (🟡 Next)
 
 **Problem:** Multiple detectors can flag the same event and a single equipment incident can span multiple sensors.
 

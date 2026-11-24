@@ -7,13 +7,13 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from rigpulse.models import METRICS
-from rigpulse.storage import fetch_alerts, fetch_series, initialize, rig_names, summary
+from rigpulse.storage import fetch_alerts, fetch_series, initialize, rig_names, stream_status, summary
 
 
 def create_app(db: str | Path = "rigpulse.db") -> FastAPI:
     db = str(db)
     initialize(db)
-    app = FastAPI(title="RigPulse Telemetry Lab", version="0.2.0",
+    app = FastAPI(title="RigPulse Telemetry Lab", version="0.3.0",
                   description="Development-only telemetry monitoring and anomaly analysis API")
     web_dir = Path(__file__).parent / "web"
     app.mount("/static", StaticFiles(directory=str(web_dir)), name="static")
@@ -24,7 +24,7 @@ def create_app(db: str | Path = "rigpulse.db") -> FastAPI:
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "version": "0.2.0"}
+        return {"status": "ok", "version": "0.3.0"}
 
     @app.get("/api/v1/rigs")
     def rigs():
@@ -33,6 +33,10 @@ def create_app(db: str | Path = "rigpulse.db") -> FastAPI:
     @app.get("/api/v1/summary")
     def get_summary():
         return summary(db)
+
+    @app.get("/api/v1/stream/status")
+    def get_stream_status():
+        return stream_status(db)
 
     @app.get("/api/v1/alerts")
     def get_alerts(limit: int = Query(50, ge=1, le=500), rig_id: str | None = None):
