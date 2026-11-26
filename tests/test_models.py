@@ -1,4 +1,5 @@
 import pytest
+
 from rigpulse.models import Reading, normalize_timestamp
 
 

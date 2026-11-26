@@ -141,6 +141,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     elif command == "serve":
         import uvicorn
+
         from rigpulse.api import create_app
 
         print(f"Serving local dashboard at http://{args.host}:{args.port}")
