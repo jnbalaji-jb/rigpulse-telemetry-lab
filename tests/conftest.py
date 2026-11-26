@@ -1,8 +1,8 @@
 import pytest
 
-from rigpulse.simulate import generate
-from rigpulse.ingest import ingest_csv
 from rigpulse.detection import detect
+from rigpulse.ingest import ingest_csv
+from rigpulse.simulate import generate
 
 
 @pytest.fixture
