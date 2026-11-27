@@ -12,45 +12,146 @@
     <aside class="sidebar">
       <a class="brand" href="/"><span class="brand-mark">∿</span><span>RIG<span class="brand-accent">PULSE</span><small>RELIABILITY LAB</small></span></a>
       <div class="side-section">WORKSPACE</div>
-      <div class="side-link active"><span>◫</span> Fleet overview</div>
-      <div class="side-link"><span>⌁</span> Anomaly insights</div>
-      <div class="side-link"><span>⋈</span> Signal explorer</div>
+      <a class="side-link active" href="#overview"><span>◐</span> Fleet overview</a>
+      <a class="side-link" href="#incidents-section"><span>⚡</span> Incidents</a>
+      <a class="side-link" href="#signal-section"><span>⋈</span> Signal explorer</a>
+      <a class="side-link" href="#alerts-section"><span>⌹</span> Anomaly findings</a>
       <div class="side-section">CURRENT RELEASE</div>
-      <div class="release"><strong>v0.2.0</strong><span>Local demonstration</span><p>Rules, rolling robust-z, and multivariate Isolation Forest; streaming planned.</p></div>
+      <div class="release"><strong>v0.3.0</strong><span>Local demonstration</span><p>M1 Isolation Forest, M2 streaming checkpoints, and M3 incident correlation active.</p></div>
       <div class="side-foot">SYNTHETIC DATA · NOT SAFETY CERTIFIED</div>
     </aside>
     <main class="content">
       <header class="topbar">
-        <div class="crumb">Telemetry operations <span>/</span> Overview</div>
+        <div class="crumb">Telemetry operations <span>/</span> Overview &amp; Incident Triage</div>
         <span id="connection" class="connection"><span class="connection-dot"></span> Connecting…</span>
       </header>
-      <div class="page">
-        <div class="heading"><div><div class="eyebrow">INDUSTRIAL OBSERVABILITY</div><h1>Fleet health overview<span class="dot">.</span></h1><p>Understand equipment signals, anomalous measurements, and detection evidence in one place.</p></div><button class="refresh" id="refresh">↻ Refresh</button></div>
+      <div class="page" id="overview">
+        <div class="heading">
+          <div>
+            <div class="eyebrow">INDUSTRIAL OBSERVABILITY</div>
+            <h1>Fleet health overview<span class="dot">.</span></h1>
+            <p>Understand equipment signals, correlated incidents, and detection evidence in one place.</p>
+          </div>
+          <button class="refresh" id="refresh">↻ Refresh</button>
+        </div>
+
         <div class="stats">
-          <article class="stat"><span>Monitored rigs</span><strong id="rigs">—</strong><small>Connected data sources</small><i>▦</i></article>
-          <article class="stat"><span>Telemetry readings</span><strong id="readings">—</strong><small>Historical data points</small><i>⌁</i></article>
+          <article class="stat"><span>Monitored rigs</span><strong id="rigs">—</strong><small>Connected data sources</small><i>▪</i></article>
+          <article class="stat"><span>Telemetry readings</span><strong id="readings">—</strong><small>Historical data points</small><i>⌹</i></article>
           <article class="stat"><span>Flagged readings</span><strong id="flagged">—</strong><small>Unique suspected anomalies</small><i>◈</i></article>
           <article class="stat danger"><span>Critical alerts</span><strong id="critical">—</strong><small>Detector findings</small><i>!</i></article>
         </div>
-        <div class="body-grid">
+
+        <div class="body-grid" id="signal-section">
           <section class="panel chart-panel">
             <div class="panel-head"><div><h2>Signal explorer</h2><p>Recent measurements with anomaly markers</p></div><span class="chip">ROLLING SERIES</span></div>
-            <div class="filters"><label>Rig<select id="rig-select"><option>Loading…</option></select></label><label>Metric<select id="metric-select"><option value="temperature_c">Temperature · °C</option><option value="pressure_bar">Pressure · bar</option><option value="vibration_mm_s">Vibration · mm/s</option><option value="flow_m3_h">Flow · m³/h</option></select></label></div>
+            <div class="filters">
+              <label>Rig<select id="rig-select"><option>Loading…</option></select></label>
+              <label>Metric<select id="metric-select">
+                <option value="temperature_c">Temperature · °C</option>
+                <option value="pressure_bar">Pressure · bar</option>
+                <option value="vibration_mm_s">Vibration · mm/s</option>
+                <option value="flow_m3_h">Flow · m³/h</option>
+              </select></label>
+            </div>
             <div class="chart-wrap"><svg id="chart" viewBox="0 0 800 265" preserveAspectRatio="none" role="img" aria-label="Recent telemetry line chart"><text x="400" y="130" text-anchor="middle" fill="#8394ac">Loading data…</text></svg></div>
             <div class="legend"><span><b class="legend-line"></b>Reading</span><span><b class="legend-alert"></b>Flagged anomaly</span></div>
           </section>
-          <section class="panel status-panel"><div class="panel-head"><div><h2>Detection engine</h2><p>Transparent anomaly signals</p></div><span class="chip neutral">EXPLAINABLE</span></div>
+
+          <section class="panel status-panel">
+            <div class="panel-head"><div><h2>Detection &amp; triage engine</h2><p>Transparent anomaly and incident pipeline</p></div><span class="chip neutral">EXPLAINABLE</span></div>
             <div class="engine-item"><span class="engine-icon">△</span><div><strong>Operating limits</strong><small>Illustrative rule thresholds by metric</small></div><span class="pill ok">ACTIVE</span></div>
-            <div class="engine-item"><span class="engine-icon">⌁</span><div><strong>Rolling robust Z</strong><small>Prior-only median and MAD baseline</small></div><span class="pill ok">ACTIVE</span></div>
-            <div id="ml-engine-item" class="engine-item"><span class="engine-icon">✧</span><div><strong>Multivariate anomaly ML</strong><small>Isolation Forest on causal sensor windows</small></div><span id="ml-engine-pill" class="pill ok">ACTIVE</span></div>
-            <div class="engine-item planned"><span class="engine-icon">◉</span><div><strong>Streaming connectors</strong><small>Kafka / MQTT and backpressure</small></div><span class="pill">PLANNED</span></div>
-            <div class="notice">This lab uses reproducible synthetic telemetry. Alerts are informational only and must not control industrial equipment.</div>
+            <div class="engine-item"><span class="engine-icon">⌹</span><div><strong>Rolling robust Z</strong><small>Prior-only median and MAD baseline</small></div><span class="pill ok">ACTIVE</span></div>
+            <div id="ml-engine-item" class="engine-item"><span class="engine-icon">✺</span><div><strong>Multivariate anomaly ML</strong><small>Isolation Forest on causal sensor windows</small></div><span id="ml-engine-pill" class="pill ok">ACTIVE</span></div>
+            <div class="engine-item"><span class="engine-icon">◉</span><div><strong>Streaming connectors</strong><small>MQTT / Kafka with watermarks &amp; checkpoints</small></div><span class="pill ok">ACTIVE</span></div>
+            <div class="engine-item"><span class="engine-icon">⚡</span><div><strong>Incident correlation</strong><small>Per-rig alert grouping &amp; lifecycle triage</small></div><span class="pill ok">ACTIVE</span></div>
+            <div class="notice">This lab uses reproducible synthetic telemetry. Alerts and incidents are informational only and must not control industrial equipment.</div>
           </section>
         </div>
-        <section class="panel alert-panel"><div class="panel-head"><div><h2>Latest anomaly findings</h2><p>Each alert includes the detector and why it fired</p></div><span class="chip">RECENT FIRST</span></div>
+
+        <section class="panel incident-panel" id="incidents-section">
+          <div class="panel-head">
+            <div>
+              <h2>Correlated incidents</h2>
+              <p>Grouped per-rig anomalies with lifecycle state transitions and investigation notes</p>
+            </div>
+            <div class="incident-toolbar">
+              <div class="inc-kpis">
+                <span class="kpi-badge open">Open: <strong id="inc-open">0</strong></span>
+                <span class="kpi-badge acknowledged">Ack: <strong id="inc-ack">0</strong></span>
+                <span class="kpi-badge investigating">Investigating: <strong id="inc-inv">0</strong></span>
+                <span class="kpi-badge resolved">Resolved: <strong id="inc-res">0</strong></span>
+              </div>
+              <select id="incident-status-filter" aria-label="Filter incidents by status">
+                <option value="">All statuses</option>
+                <option value="open">Open</option>
+                <option value="acknowledged">Acknowledged</option>
+                <option value="investigating">Investigating</option>
+                <option value="resolved">Resolved</option>
+              </select>
+              <button class="btn-primary" id="correlate-btn" type="button">⚡ Correlate alerts</button>
+            </div>
+          </div>
+
+          <div id="incident-banner" class="incident-banner" hidden></div>
+
+          <div id="incident-detail-panel" class="detail-drawer" hidden>
+            <div class="detail-head">
+              <div>
+                <div class="eyebrow">INCIDENT INVESTIGATION</div>
+                <h3 id="detail-title">—</h3>
+                <p id="detail-meta">—</p>
+              </div>
+              <div class="detail-head-actions">
+                <div id="detail-transitions" class="action-group"></div>
+                <button class="btn-ghost" id="close-detail-btn" type="button">✕ Close</button>
+              </div>
+            </div>
+
+            <div class="detail-grid">
+              <div class="detail-card">
+                <h4>Linked Alerts</h4>
+                <div id="detail-alerts" class="detail-list"></div>
+              </div>
+              <div class="detail-card">
+                <h4>Audit Trail &amp; Investigation Notes</h4>
+                <div id="detail-notes" class="detail-list"></div>
+                <form id="note-form" class="note-form">
+                  <input id="note-author" type="text" value="operator" placeholder="Actor" aria-label="Note author" required />
+                  <input id="note-text" type="text" placeholder="Add investigation observation or root-cause note…" aria-label="Investigation note" required />
+                  <button class="btn-primary" type="submit">Add note</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Incident ID</th>
+                  <th>Rig</th>
+                  <th>Correlated Summary</th>
+                  <th>Alerts</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Last Seen (UTC)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incidents-body">
+                <tr><td colspan="8">Loading incidents…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel alert-panel" id="alerts-section">
+          <div class="panel-head"><div><h2>Latest anomaly findings</h2><p>Each alert includes the detector and why it fired</p></div><span class="chip">RECENT FIRST</span></div>
           <div class="table-scroll"><table><thead><tr><th>Timestamp (UTC)</th><th>Rig</th><th>Metric</th><th>Value</th><th>Detector</th><th>Severity</th></tr></thead><tbody id="alerts"><tr><td colspan="6">Loading alerts…</td></tr></tbody></table></div>
         </section>
-        <footer>RigPulse v0.2.0 · Python / FastAPI / SQLite · <a href="/docs">API documentation</a> · Educational engineering prototype</footer>
+
+        <footer>RigPulse v0.3.0 · Python / FastAPI / SQLite · <a href="/docs">API documentation</a> · Educational engineering prototype</footer>
       </div>
     </main>
   </div>

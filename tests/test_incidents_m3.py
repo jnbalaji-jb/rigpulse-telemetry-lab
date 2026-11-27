@@ -192,4 +192,12 @@ def test_correlate_reads_from_pipeline_sqlite_tables(tmp_path: Path) -> None:
     assert cli_main(["incidents", "correlate", "--db", str(db), "--window-minutes", "60"]) == 0
 
     summary = fetch_incident_summary(db)
-    assert summary["total_incidents"] >= 1
+    assert summary["total_incidents"] >= 1   
+    
+def test_dashboard_includes_incidents_panel(tmp_path: Path) -> None:
+    client = TestClient(create_app(tmp_path / "ui_m3.db"))
+    html_resp = client.get("/")
+    assert html_resp.status_code == 200
+    assert "Correlated incidents" in html_resp.text
+    assert 'id="incidents-body"' in html_resp.text
+    assert 'id="correlate-btn"' in html_resp.text
