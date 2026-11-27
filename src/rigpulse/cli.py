@@ -10,6 +10,14 @@ from rigpulse.detection import detect
 from rigpulse.drift import drift_report
 from rigpulse.evaluation import evaluate
 from rigpulse.features import export_features
+from rigpulse.incidents import (
+    add_incident_note,
+    correlate_alerts_into_incidents,
+    fetch_incident_summary,
+    get_incident_detail,
+    list_incidents,
+    transition_incident,
+)
 from rigpulse.ingest import ingest_csv
 from rigpulse.ml import ModelConfig, train_model
 from rigpulse.simulate import generate
@@ -83,6 +91,44 @@ def parser() -> argparse.ArgumentParser:
     a.add_argument("--db", default="rigpulse.db")
     a.add_argument("--host", default="127.0.0.1")
     a.add_argument("--port", type=int, default=8000)
+
+    inc = sub.add_parser("incidents", help="correlate alerts into incidents and manage lifecycle")
+    inc_sub = inc.add_subparsers(dest="incident_command", required=True)
+
+    inc_corr = inc_sub.add_parser("correlate", help="group correlated alerts into incidents")
+    inc_corr.add_argument("--db", default="rigpulse.db")
+    inc_corr.add_argument("--window-minutes", type=int, default=60)
+
+    inc_list = inc_sub.add_parser("list", help="list tracked incidents")
+    inc_list.add_argument("--db", default="rigpulse.db")
+    inc_list.add_argument("--status", default=None)
+    inc_list.add_argument("--rig-id", default=None)
+    inc_list.add_argument("--limit", type=int, default=50)
+
+    inc_show = inc_sub.add_parser("show", help="show full incident detail, alerts, and notes")
+    inc_show.add_argument("incident_id")
+    inc_show.add_argument("--db", default="rigpulse.db")
+
+    inc_trans = inc_sub.add_parser("transition", help="transition incident lifecycle state")
+    inc_trans.add_argument("incident_id")
+    inc_trans.add_argument(
+        "--status",
+        required=True,
+        choices=["open", "acknowledged", "investigating", "resolved"],
+    )
+    inc_trans.add_argument("--actor", default="operator")
+    inc_trans.add_argument("--note", default=None)
+    inc_trans.add_argument("--db", default="rigpulse.db")
+
+    inc_note = inc_sub.add_parser("note", help="append an analyst note to an incident")
+    inc_note.add_argument("incident_id")
+    inc_note.add_argument("--note", required=True)
+    inc_note.add_argument("--actor", default="operator")
+    inc_note.add_argument("--db", default="rigpulse.db")
+
+    inc_sum = inc_sub.add_parser("summary", help="summarize incident counts by status")
+    inc_sum.add_argument("--db", default="rigpulse.db")
+
     return p
 
 
@@ -146,6 +192,31 @@ def main(argv: list[str] | None = None) -> int:
 
         print(f"Serving local dashboard at http://{args.host}:{args.port}")
         uvicorn.run(create_app(args.db), host=args.host, port=args.port, log_level="info")
+    elif command == "incidents":
+        sub_cmd = args.incident_command
+        if sub_cmd == "correlate":
+            emit(correlate_alerts_into_incidents(args.db, window_minutes=args.window_minutes))
+        elif sub_cmd == "list":
+            emit({"items": list_incidents(args.db, args.status, args.rig_id, args.limit)})
+        elif sub_cmd == "show":
+            detail = get_incident_detail(args.db, args.incident_id)
+            if detail is None:
+                raise SystemExit(f"Incident '{args.incident_id}' not found")
+            emit(detail)
+        elif sub_cmd == "transition":
+            emit(
+                transition_incident(
+                    args.db,
+                    args.incident_id,
+                    args.status,
+                    actor=args.actor,
+                    note=args.note,
+                )
+            )
+        elif sub_cmd == "note":
+            emit(add_incident_note(args.db, args.incident_id, args.note, author=args.actor))
+        elif sub_cmd == "summary":
+            emit(fetch_incident_summary(args.db))
     return 0
 
 
